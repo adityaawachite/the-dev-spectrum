@@ -1,0 +1,207 @@
+
+@page "/tictactoe"
+
+<PageTitle>OX Game</PageTitle>
+
+<div class="tic-tac-toe-container">
+    <h1>OX Game</h1>
+    
+    <!-- Game Status Display -->
+    <div class="status-board">
+        @if (winner != null)
+        {
+            <div class="alert win-alert">Player @winner Wins! 🎉</div>
+        }
+        else if (isDraw)
+        {
+            <div class="alert draw-alert">It's a Draw! 🤝</div>
+        }
+        else
+        {
+            <div class="alert turn-alert">Player @currentPlayer's Turn</div>
+        }
+    </div>
+
+    <!-- 3x3 Game Board -->
+    <div class="board">
+        @for (int i = 0; i < 9; i++)
+        {
+            var index = i; <!-- Local variable needed for the lambda expression -->
+            <button class="cell @GetCellClass(board[index])" 
+                    @onclick="() => MakeMove(index)" 
+                    disabled="@(board[index] != "" || winner != null || isDraw)">
+                @board[index]
+            </button>
+        }
+    </div>
+
+    <!-- Controls -->
+    <button class="reset-btn" @onclick="ResetGame">Restart Game</button>
+</div>
+
+<style>
+    /* Scoped CSS for the Tic-Tac-Toe component */
+    .tic-tac-toe-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin-top: 2rem;
+    }
+
+    h1 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+
+    .status-board {
+        height: 50px;
+        margin-bottom: 1rem;
+    }
+
+    .alert {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .win-alert { background-color: #d4edda; color: #155724; }
+    .draw-alert { background-color: #fff3cd; color: #856404; }
+    .turn-alert { background-color: #e2e3e5; color: #383d41; }
+
+    .board {
+        display: grid;
+        grid-template-columns: repeat(3, 100px);
+        grid-template-rows: repeat(3, 100px);
+        gap: 8px;
+        background-color: #34495e;
+        padding: 10px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .cell {
+        background-color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        font-size: 3.5rem;
+        font-weight: bold;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .cell:hover:not(:disabled) {
+        background-color: #f8f9fa;
+    }
+
+    .cell:disabled {
+        cursor: not-allowed;
+    }
+
+    /* Player Colors */
+    .cell-x { color: #e74c3c; } /* Red for X */
+    .cell-o { color: #3498db; } /* Blue for O */
+
+    .reset-btn {
+        margin-top: 1.5rem;
+        padding: 12px 24px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        background-color: #2ecc71;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .reset-btn:hover { background-color: #27ae60; }
+    .reset-btn:active { transform: scale(0.95); }
+</style>
+
+@code {
+    // State variables
+    private string[] board = new string[9];
+    private string currentPlayer = "X";
+    private string? winner = null;
+    private bool isDraw = false;
+
+    // Winning combinations (indexes of rows, columns, and diagonals)
+    private readonly int[][] winningCombos = new int[][]
+    {
+        new[] {0, 1, 2}, new[] {3, 4, 5}, new[] {6, 7, 8}, // Rows
+        new[] {0, 3, 6}, new[] {1, 4, 7}, new[] {2, 5, 8}, // Columns
+        new[] {0, 4, 8}, new[] {2, 4, 6}                   // Diagonals
+    };
+
+    protected override void OnInitialized()
+    {
+        ResetGame();
+    }
+
+    private void MakeMove(int index)
+    {
+        // Prevent move if cell is filled or game is over
+        if (!string.IsNullOrEmpty(board[index]) || winner != null || isDraw)
+            return;
+
+        // Place marker
+        board[index] = currentPlayer;
+        
+        // Evaluate game state
+        CheckWinCondition();
+
+        // Switch turns if game continues
+        if (winner == null && !isDraw)
+        {
+            currentPlayer = currentPlayer == "X" ? "O" : "X";
+        }
+    }
+
+    private void CheckWinCondition()
+    {
+        // 1. Check for a winner
+        foreach (var combo in winningCombos)
+        {
+            if (!string.IsNullOrEmpty(board[combo[0]]) &&
+                board[combo[0]] == board[combo[1]] &&
+                board[combo[1]] == board[combo[2]])
+            {
+                winner = board[combo[0]];
+                return;
+            }
+        }
+
+        // 2. Check for a draw (no empty cells left)
+        if (!board.Any(cell => string.IsNullOrEmpty(cell)))
+        {
+            isDraw = true;
+        }
+    }
+
+    private void ResetGame()
+    {
+        // Reset all state back to default
+        Array.Fill(board, "");
+        currentPlayer = "X";
+        winner = null;
+        isDraw = false;
+    }
+
+    // Helper method to assign CSS classes based on the cell's value
+    private string GetCellClass(string cellValue)
+    {
+        return cellValue switch
+        {
+            "X" => "cell-x",
+            "O" => "cell-o",
+            _ => ""
+        };
+    }
+}
