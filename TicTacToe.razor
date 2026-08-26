@@ -126,13 +126,13 @@
 </style>
 
 @code {
-    // State variables
+    
     private string[] board = new string[9];
     private string currentPlayer = "X";
     private string? winner = null;
     private bool isDraw = false;
 
-    // Winning combinations (indexes of rows, columns, and diagonals)
+    
     private readonly int[][] winningCombos = new int[][]
     {
         new[] {0, 1, 2}, new[] {3, 4, 5}, new[] {6, 7, 8}, // Rows
@@ -147,17 +147,17 @@
 
     private void MakeMove(int index)
     {
-        // Prevent move if cell is filled or game is over
+        
         if (!string.IsNullOrEmpty(board[index]) || winner != null || isDraw)
             return;
 
-        // Place marker
+        
         board[index] = currentPlayer;
         
-        // Evaluate game state
+        
         CheckWinCondition();
 
-        // Switch turns if game continues
+        
         if (winner == null && !isDraw)
         {
             currentPlayer = currentPlayer == "X" ? "O" : "X";
@@ -166,7 +166,7 @@
 
     private void CheckWinCondition()
     {
-        // 1. Check for a winner
+        
         foreach (var combo in winningCombos)
         {
             if (!string.IsNullOrEmpty(board[combo[0]]) &&
@@ -178,7 +178,7 @@
             }
         }
 
-        // 2. Check for a draw (no empty cells left)
+        
         if (!board.Any(cell => string.IsNullOrEmpty(cell)))
         {
             isDraw = true;
@@ -194,7 +194,7 @@
         isDraw = false;
     }
 
-    // Helper method to assign CSS classes based on the cell's value
+    
     private string GetCellClass(string cellValue)
     {
         return cellValue switch
